@@ -1,0 +1,5 @@
+form_schema: "../usecases/smu/public/json/preUser.json"
+base_user_profiles: "../usecases/smu/public/json/userList.json"
+form_app: "TODO"
+le_server: "http://localhost:3050"
+mode: "dev"
