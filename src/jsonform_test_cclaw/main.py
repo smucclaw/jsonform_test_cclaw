@@ -8,6 +8,7 @@ import ujson as json
 # from toolz import compose, curry
 # from toolz.functoolz import pipe
 # from functools import partial
+import hypothesis
 
 from .init_hyp import hyp_settings_load_profile
 from .check_base_profiles import check_base_profiles_internal_consistent, extract_profiles_from_path
@@ -21,7 +22,7 @@ class AppConfig:
     base_profiles_path: Optional[Path] = None
     form_app_path: Optional[Path] = None
     le_server_path: Optional[str] = None
-    hypothesis_settings: Optional[str] = None
+    hypothesis_settings: Optional[hypothesis.settings] = None
 
 @app.command()
 @use_yaml_config(default_value="./config.yaml")
