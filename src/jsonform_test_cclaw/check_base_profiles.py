@@ -2,7 +2,7 @@ import typer
 from pathlib import Path
 import ujson as json
 
-def check_base_profiles_internal_consistent(base_profiles_path: Path):
+def check_base_profiles_internal_consistent(base_profiles_path: Path) -> bool:
     """
     [NOT YET IMPLEMENTED] Check base user profiles json for internal inconsistencies.
     """    
@@ -10,6 +10,7 @@ def check_base_profiles_internal_consistent(base_profiles_path: Path):
         profiles = json.load(base_profiles_file)
 
     # typer.echo(f"{profiles}")
+    return True
 
 def is_risk_commencement_date_after_dob(profile: dict) -> bool:
     pass

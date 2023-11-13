@@ -1,1 +1,1 @@
-# jsonform-check-cclaw
+`poetry run python -m jsonform_test_cclaw.main`

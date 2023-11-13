@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from typing_extensions import Annotated
 from typer_config.decorators import use_yaml_config  
 
-from init_hyp import hyp_settings_load_profile
-from check_base_profiles import check_base_profiles_internal_consistent
+from .init_hyp import hyp_settings_load_profile
+from .check_base_profiles import check_base_profiles_internal_consistent
 
 app = typer.Typer()
 
@@ -19,20 +19,8 @@ class AppConfig:
     le_server_path: Optional[str] = None
     hypothesis_settings: Optional[str] = None
 
-# @app.command("check-base-profiles")
-# def check_base_profiles(
-#     base_profiles_path: Path = typer.Argument(
-#         "config.yaml", 
-#         help="Path to the base user profiles json")
-#     ):
-#     """
-#     [NOT YET IMPLEMENTED] Check base user profiles json for internal inconsistencies.
-#     """    
-#     typer.echo(f"{base_profiles_path}")
-
-
 @app.command()
-@use_yaml_config(default_value="config.yaml")
+@use_yaml_config(default_value="./config.yaml")
 def main(
     form_schema: Annotated[Path, typer.Option()],
     base_user_profiles: Annotated[Path, typer.Option()],
@@ -53,3 +41,15 @@ def main(
 
 if __name__ == "__main__":
     app()
+
+
+# @app.command("check-base-profiles")
+# def check_base_profiles(
+#     base_profiles_path: Path = typer.Argument(
+#         "config.yaml", 
+#         help="Path to the base user profiles json")
+#     ):
+#     """
+#     [NOT YET IMPLEMENTED] Check base user profiles json for internal inconsistencies.
+#     """    
+#     typer.echo(f"{base_profiles_path}")

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "jsonform-check-cclaw"
+name = "jsonform_test_cclaw"
 version = "0.1.0"
 description = ""
 authors = ["ymh <hanyongming@gmail.com>"]
 readme = "README.md"
-packages = [{include = "jsonform_check_cclaw", from = "src"}]
+packages = [{include = "jsonform_test_cclaw", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
