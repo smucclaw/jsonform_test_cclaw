@@ -52,3 +52,5 @@ def is_risk_commencement_date_after_dob(profile: dict) -> bool:
 def is_num_stepups_valid(profile: dict) -> bool:
     pass
 
+def is_past_claims_valid(profile: dict) -> bool:
+    pass
