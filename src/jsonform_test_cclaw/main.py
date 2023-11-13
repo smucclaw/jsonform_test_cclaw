@@ -4,9 +4,13 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing_extensions import Annotated
 from typer_config.decorators import use_yaml_config  
+import ujson as json
+# from toolz import compose, curry
+# from toolz.functoolz import pipe
+# from functools import partial
 
 from .init_hyp import hyp_settings_load_profile
-from .check_base_profiles import check_base_profiles_internal_consistent
+from .check_base_profiles import check_base_profiles_internal_consistent, extract_profiles_from_path
 
 app = typer.Typer()
 
@@ -35,7 +39,10 @@ def main(
                            le_server_path=le_server,
                            hypothesis_settings=hypothesis_settings)
 
-    check_base_profiles_internal_consistent(app_config.base_profiles_path)
+    base_profiles = extract_profiles_from_path(app_config.base_profiles_path)
+    check_base_profiles_internal_consistent(base_profiles)
+
+    # typer.echo(f"{base_profiles}")
     
     typer.echo(f"{app_config}")
 
