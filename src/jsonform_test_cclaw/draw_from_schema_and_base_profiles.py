@@ -1,14 +1,16 @@
+from dataclasses import dataclass
 from functools import partial
+from toolz import mapcat
 from copy import deepcopy
 from pathlib import Path
 import ujson as json
-from dataclasses import dataclass
-
 from hypothesis import example, given, strategies as st
 from hypothesis_jsonschema import from_schema
+from .utils import offset_date
 
 @dataclass(frozen=True)
 class ClaimScenario:
+    base_profile: dict
     claim_type: str
     scenario: dict # the scenario for the claim type
     
@@ -19,6 +21,31 @@ class SchemasByClaimType:
 
 
 # ---------- Utils -----------------------------------------------------------------
+def get_all_date_kvpairs(json: dict):
+    """
+    Extracts a set of (key, value) pairs, where the value is a date string,
+    from a json dict
+    
+    EG: 
+    >>> get_all_date_kvpairs(base_profile)
+    {('blah_date', '2001-11-10'), ('blah2_date', '2000-06-15')}
+    """
+    pairs = set()
+     
+    for key, value in json.items():
+        if isinstance(value, str) and (key.endswith("_date") or key.endswith("_dt")):
+            pairs.add((key, value))
+        if isinstance(value, dict):
+            pairs.update(get_all_date_kvpairs(json[key]))
+        if isinstance(value, list):
+            for elt in value:
+                if isinstance(elt, dict): 
+                    pairs.update(get_all_date_kvpairs(elt))
+    return pairs
+
+def dates_from_base_profile(bp: dict) -> set:
+    return {date for _, date in get_all_date_kvpairs(bp)}
+
 def prohibit_additional_properties(schema: dict):
     """
     Recursively adds "additionalProperties": false to every object in the JSON schema,
@@ -89,20 +116,31 @@ def get_schema_for_claim_type(orig_schema: dict, claim_type: str) -> dict:
     return schema
 
 @st.composite
-def claim_scenario_st(draw, orig_schema: dict):
+def claim_scenario_st(draw, orig_schema: dict, base_profiles: list[dict]):
     """
+    Given the original schema dict and base profiles, returns a strategy for ClaimScenarios
+
     We need to first draw from the type of claim, 
     then massage the original schema into the right form for the claim type
     """
-    # TODO: Mix in base profiles and pass in custom date st based on base profiles
+    # Set up schemas and base profiles and related strats
     orig_schema = prohibit_additional_properties(orig_schema)
     schs_by_claim_type = get_schemas_for_claim_types(orig_schema)
 
-    # 1. first draw from the type of claim
+    dates_per_bp = [dates_from_base_profile(bp) for bp in base_profiles]
+    base_profiles_st = init_base_profiles_st(base_profiles)
+
+    # 1. first draw from (i) base profiles and (ii) the type of claim
+    base_profile_idx_pair = draw(base_profiles_st)
+    bp_dates = list(dates_per_bp[base_profile_idx_pair[0]])
+
     claim_type_enum_sch = orig_schema["$defs"]["Claim"]
     claim_type = draw(from_schema(claim_type_enum_sch)).lower()
     
-    # 2. sample data from the schema for that claim type
+    # 2. sample data from the schema for that claim type,
+    #    and given the dates in the base profile
+    date_st_for_bp = st.sampled_from(bp_dates) | st.dates().map(str)
+
     if claim_type.startswith("ac"): 
         claim_schema = schs_by_claim_type.ac
     elif claim_type.startswith("il"):
@@ -110,6 +148,9 @@ def claim_scenario_st(draw, orig_schema: dict):
     else:
         raise Exception(f"Unknown claim type {claim_type}")
 
-    scenario = draw(from_schema(claim_schema))
+    scenario = draw(from_schema(claim_schema,
+                                custom_formats={"date": date_st_for_bp}))
 
-    return ClaimScenario(claim_type=claim_type, scenario=scenario)
+    return ClaimScenario(base_profile = base_profile_idx_pair,
+                        claim_type=claim_type, 
+                        scenario=scenario)
