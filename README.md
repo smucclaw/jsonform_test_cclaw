@@ -1,5 +1,23 @@
+# Current status 
+
+ The generator is quite nice, though more work would be needed to wire this up to other things (e.g., with our current setup, wiring it to Playwright to automate clicking through the form based on the generated inputs). The next step would be to do that wiring to Playwright and extracting data from the resulting outcomes tab so that properties can be tested regarding the inputs and outputs.
+
+* The data generator samples a base user profile, and includes edge-case-dates that are based on the dates in the base user profile when generating dates in the json schema
+
+* The json schema is also massaged before we generate data from it so that
+    * we don't bother generating form data we don't need for the claim type path we've chosen / sampled
+
+    * we don't generate vacuously empty dicts of the sort we do not want (this is implemented via the requiredProperties field in json schema)
+
+* At the same time, it also doesn't always generate data for certain form fields that aren't required —- in this way, we ensure that, if `max_examples`` is set to a high enough number, the cases where the user leaves out certain fields will also be generated and tested
+
+# How to run
+
+Right now there isn't much point in doing this, because it hasn't yet been wired up to things like Playwright 
+
 `poetry run python -m jsonform_test_cclaw.main`
 
+# Roadmap
 
 We will probably have a mix of Playwright-only and Hypothesis-driving-Playwright tests
 
