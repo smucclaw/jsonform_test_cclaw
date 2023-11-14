@@ -6,16 +6,6 @@ import typer
 from pathlib import Path
 import ujson as json
 
-def extract_profiles_from_path(base_profiles_path: Path):
-    with open(base_profiles_path, "r") as base_profiles_file: 
-        base_profiles = pipe(base_profiles_file, 
-                                json.load,
-                                get_profile_array,
-                                partial(map, remove_ui_fields),
-                                list)
-    return base_profiles
-
-
 # Keep name to make logs more comprehensible
 UI_ONLY_FIELDS = ["add_ons", 
                   "address",
@@ -54,3 +44,13 @@ def is_num_stepups_valid(profile: dict) -> bool:
 
 def is_past_claims_valid(profile: dict) -> bool:
     pass
+
+
+def extract_profiles_from_path(base_profiles_path: Path):
+    with open(base_profiles_path, "r") as base_profiles_file: 
+        base_profiles = pipe(base_profiles_file, 
+                                json.load,
+                                get_profile_array,
+                                partial(map, remove_ui_fields),
+                                list)
+    return base_profiles
