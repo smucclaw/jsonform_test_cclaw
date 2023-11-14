@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from pprint import pprint
+from dataclasses import dataclass, asdict
 from functools import partial
 from toolz import mapcat
 from copy import deepcopy
 from pathlib import Path
-import ujson as json
+import json
 from hypothesis import example, given, strategies as st
 from hypothesis_jsonschema import from_schema
 from .utils import offset_date
@@ -13,6 +14,10 @@ class ClaimScenario:
     base_profile: dict
     claim_type: str
     scenario: dict # the scenario for the claim type
+    
+    def to_json(self):
+        # Convert to a dictionary and then to a JSON-formatted string
+        return json.dumps(asdict(self), indent=2)
     
 @dataclass(frozen=True)
 class SchemasByClaimType:
@@ -30,10 +35,13 @@ def get_all_date_kvpairs(json: dict):
     >>> get_all_date_kvpairs(base_profile)
     {('blah_date', '2001-11-10'), ('blah2_date', '2000-06-15')}
     """
+    def is_date_key(key: str) -> bool:
+        return key.endswith("_date") or key.endswith("_dt") or key == "dob"
+
     pairs = set()
      
     for key, value in json.items():
-        if isinstance(value, str) and (key.endswith("_date") or key.endswith("_dt")):
+        if isinstance(value, str) and is_date_key(key):
             pairs.add((key, value))
         if isinstance(value, dict):
             pairs.update(get_all_date_kvpairs(json[key]))
@@ -75,10 +83,25 @@ def init_base_profiles_st(base_profiles: list[dict]) -> st.SearchStrategy:
 # ---------------------------------------------------------------------------------------
 
 # ---------- Getting the right schema for the claim type -----------------------------
+def add_outer_required_props(ctype_schema: dict):
+    """
+    to avoid getting empty dicts back 
+    when we don't want empty dicts
+
+    Precondition: the schema has already been massaged
+    into the right form for the claim type
+    """
+    ctype_schema["required"] = ["toplevel"]
+    ctype_schema["$defs"]["Web_Form"]["required"] = [prop for prop in ctype_schema["$defs"]["Web_Form"]["properties"]]
+    
+    return ctype_schema
+
 def get_schemas_for_claim_types(form_schema: dict) -> dict:
     schema_ac = get_schema_for_claim_type(form_schema, "Ac")
     schema_il = get_schema_for_claim_type(form_schema, "Il")
-    return SchemasByClaimType(ac=schema_ac, il=schema_il)
+    return SchemasByClaimType(
+        ac=add_outer_required_props(schema_ac), 
+        il=add_outer_required_props(schema_il))
 
 
 def remove_other_claim_subschemas(schema: dict, claim_type: str):
@@ -153,4 +176,4 @@ def claim_scenario_st(draw, orig_schema: dict, base_profiles: list[dict]):
 
     return ClaimScenario(base_profile = base_profile_idx_pair,
                         claim_type=claim_type, 
-                        scenario=scenario)
+                        scenario=scenario["toplevel"])
