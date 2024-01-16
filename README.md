@@ -2,7 +2,9 @@
 
 This was meant to be a property-based testing solution for CCLAW's json form web app. It also aimed to do some simple internal consistency checks on the examples.
 
-The original plan had been to come up with a generator and property-based tests in `Hypothesis`, and then wire up the hypothesis infra to Playwright, and have Playwright automatedly step through the form. The better approach would have been to do the bulk of the testing at the level of data instead of automatedly stepping through the web form, but the architecture of the web app back then didn't really allow for that.
+The original plan had been to come up with a generator and property-based tests in `Hypothesis`, and then wire up the hypothesis infra to Playwright, and have Playwright automatedly step through the form. The better approach would have been to do the bulk of the testing at the level of data instead of automatedly stepping through the web form, but the architecture of the web app back then didn't really allow for that. 
+
+I used Python just because this needed to be done really quickly and I knew it better than JS; I was also familiar with `Hypothesis`, and it seemed better than the PBT solutions in JS, at least back then.
 
 # Current status 
 
